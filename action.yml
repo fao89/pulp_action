@@ -1,0 +1,37 @@
+name: 'Pulp CI'
+description: 'Pulp CI Action'
+inputs:
+  test-type:  # id of input
+    description: 'The test type'
+    required: true
+    default: 'pulp'
+runs:
+  using: "composite"
+  steps:
+    - name: Install httpie
+      run: |
+        echo ::group::HTTPIE
+        sudo apt-get update -yq
+        sudo -E apt-get -yq --no-install-suggests --no-install-recommends install httpie
+        echo ::endgroup::
+      shell: bash
+    - name: Before Install
+      run: |
+        .github/before_install.sh
+        echo "TEST=${{ inputs.test-type }}" >> $GITHUB_ENV
+      shell: bash
+    - name: Install
+      run: |
+        .github/install.sh
+      env:
+        PY_COLORS: '1'
+        ANSIBLE_FORCE_COLOR: '1'
+      shell: bash
+    - name: Before Script
+      run: |
+        .github/before_script.sh
+        echo "HTTPIE_CONFIG_DIR=$GITHUB_WORKSPACE/.github" >> $GITHUB_ENV
+      shell: bash
+    - name: Script
+      run: .github/script.sh
+      shell: bash
